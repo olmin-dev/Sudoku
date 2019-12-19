@@ -21,9 +21,9 @@ def printSudokuCase(a):
         print(a[i])
 
 # Return True if the proposition is correct (according the sudoku's rules)
-def isCorrect(a, test, x, y):
+def isCorrect(a, test, n, x, y):
     for i in range(len(a)):
-        if(a[x][y] != 0 or a[i][x] == test or a[y][i] == test):
+        if(a[n][i][x] == test or a[n][y][i] == test):
             return False
     return True
 
@@ -34,6 +34,25 @@ def addNumber(a, val, x, y):
         return True
     return False
 
+# Return all the position that have to be solved
+def toSolve(a):
+    ret = []
+    for  i in range(9):
+        for j in range(3):
+            for k in range(3):
+                if(a[i][j][k] == 0):
+                    ret.append((i, j, k))
+    return ret
+
+# First verion of the solver
+def backtrackingSolver(a):
+    toSolve = toSolve(a)
+    for (i, j, k) in toSolve:
+        for l in range(9):
+            if(isCorrect(a, l, i, j, k):
+                addNumber(a, l, i, j, k)
+
+# Board example TODO : Search a real sudoku board
 test = [[[1,2,3],[4,5,6],[7,8,0]],
         [[1,2,3],[4,5,6],[7,8,0]],
         [[1,2,3],[4,5,6],[7,8,0]],
@@ -45,3 +64,5 @@ test = [[[1,2,3],[4,5,6],[7,8,0]],
         [[1,2,3],[4,5,6],[7,8,0]]]
 
 printSudoku(test)
+
+print(toSolve(test))
