@@ -1,98 +1,95 @@
+# The sudoku's board structure is just a 9-element-list which contains 9-element-list containing integer between 0 and 9
+
 # Create an empty sudoku board
 def createEmptyGame():
     ret = []
     for i in range(9):
         ret.append([])
-        for j in range(3):
-            ret[i].append([])
-            for k in range(3):
-                ret[i][j].append(0) # 0 means empty
+        for j in range(9):
+            ret[i].append(0) # 0 means empty
     return ret
 
 # Print the sudoku board
-def printSudoku(a): #TODO implement a better print structure
+def printSudoku(a): # Update with the GUI
     for i in range(9):
-        print("------------")
-        printSudokuCase(a[i])
+        print(str(a[i][0:3])[1:-1].replace(", ", " ").replace("0", "X"), "|",
+            str(a[i][3:6])[1:-1].replace(", ", " ").replace("0", "X"), "|",
+            str(a[i][6:9])[1:-1].replace(", ", " ").replace("0", "X"))
+        if(i % 3 == 2 and i < 8):
+            print("------+-------+-------")
 
-# Print one 9x9 case (Will be deleted)
-def printSudokuCase(a):
-    for i in range(3):
-        print(a[i])
 
 # Return True if the number already exist in the square
-def isAlreadyInSquare(a, test):
+def isAlreadyInSquare(board, val, x, y):
+    xmin = (x // 3) * 3
+    ymin = (y // 3) * 3
     for i in range(3):
         for j in range(3):
-            if(a[i][j] == test):
+            if(board[xmin + i][ymin + j] == val):
                 return True
     return False
 
 # Return True if the number already exist in the square
-def isAlreadyInColumn(a, test, x, y, n):
-    for i in range(3):
-        for j in range(3):
-            if(a[i*3 + n][x][j] == test):
+def isAlreadyInColumn(board, val, x, y):
+    for i in range(9):
+            if(board[x][i] == val):
                 return True
     return False
 
 # Return True if the number already exist in the square
-def isAlreadyInLine(a, test, x, y, n):
-    for i in range(3):
-        for j in range(3):
-            if(a[(n // 3) + i][j][y] == test):
+def isAlreadyInLine(board, val, x, y):
+    for i in range(9):
+            if(board[i][y] == val):
                 return True
     return False
 
 # Return True if the number already exist in the square
-def isAlreadyIn(a, test, x, y, n):
-    return not(isAlreadyInSquare(a[n], test)) and not(isAlreadyInLine(a, test, x, y, n)) and not(isAlreadyInColumn(a, test, x, y, n))
+def isAlreadyIn(board, val, x, y):
+    return isAlreadyInSquare(board, val, x, y) or isAlreadyInLine(board, val, x, y) or isAlreadyInColumn(board, val, x, y)
 
 # Return True if the proposition is correct (according the sudoku's rules)
-def isCorrect(a, test, n, x, y):
-    for i in range(len(a)):
-        if(not(isAlreadyIn(a[i], test, x, y, n))):
-            return False
-    return True
+def isCorrect(board, val, x, y):
+    return board[x][y] == 0 and not(isAlreadyIn(board, val, x, y))
 
 # Add a nulber in the board only if it's possible
-def addNumber(a, val, x, y):
-    if(isCorrect(a, val, x, y)):
-        a[x][y] = val
+def addNumber(board, val, x, y):
+    if(isCorrect(board, val, x, y)):
+        board[x][y] = val
         return True
     return False
 
 # Return all the position that have to be solved
-def toSolve(a):
+def toSolve(board):
     ret = []
     for  i in range(9):
-        for j in range(3):
-            for k in range(3):
-                if(a[i][j][k] == 0):
-                    ret.append((i, j, k))
+        for j in range(9):
+            if(board[i][j] == 0):
+                ret.append((i, j))
     return ret
 
 # First verion of the solver
-def backtrackingSolver(a):
-    toSolve = toSolve(a)
-    for (i, j, k) in toSolve:
-        for l in range(9):
-            if(isCorrect(a, l, i, j, k)):
-                addNumber(a, l, i, j, k)
+def backtrackingSolver(board):
+    empty = toSolve(board)
+    for (i, j) in empty:
+        for val in range(1, 10):
+            print(val, i, j)
+            if(isCorrect(board, val, i, j)):
+                addNumber(board, val, i, j)
 
 # Board example TODO : Search a real sudoku board
-test = [[[1,2,3],[4,5,6],[7,8,0]],
-        [[1,2,3],[4,5,6],[7,8,0]],
-        [[1,2,3],[4,5,6],[7,8,0]],
-        [[1,2,3],[4,5,6],[7,8,0]],
-        [[1,2,3],[4,5,6],[7,8,0]],
-        [[1,2,3],[4,5,6],[7,8,0]],
-        [[1,2,3],[4,5,6],[7,8,0]],
-        [[1,2,3],[4,5,6],[7,8,0]],
-        [[1,2,3],[4,5,6],[7,8,0]]]
+test = [[1,2,3,4,5,6,7,8,0],
+        [0,1,2,3,4,5,6,7,8],
+        [1,0,2,3,4,5,6,7,8],
+        [1,2,0,3,4,5,6,7,8],
+        [1,2,3,0,4,5,6,7,8],
+        [1,2,3,4,0,5,6,7,8],
+        [1,2,3,4,5,0,6,7,8],
+        [1,2,3,4,5,6,0,7,8],
+        [1,2,3,4,5,6,7,0,8]]
 
 printSudoku(test)
-
+print(addNumber(test, 9, 8, 8))
+printSudoku(test)
 print(toSolve(test))
-
-print(isAlreadyIn(test, 5, 0, 1, 2))
+backtrackingSolver(test)
+printSudoku(test)
