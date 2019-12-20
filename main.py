@@ -25,21 +25,21 @@ def isAlreadyInSquare(board, val, x, y):
     ymin = (y // 3) * 3
     for i in range(3):
         for j in range(3):
-            if(board[xmin + i][ymin + j] == val):
+            if(not(x == xmin + i and y != ymin + j) and board[xmin + i][ymin + j] == val):
                 return True
     return False
 
 # Return True if the number already exist in the square
 def isAlreadyInColumn(board, val, x, y):
     for i in range(9):
-            if(board[x][i] == val):
+            if(y != y and board[x][i] == val):
                 return True
     return False
 
 # Return True if the number already exist in the square
 def isAlreadyInLine(board, val, x, y):
     for i in range(9):
-            if(board[i][y] == val):
+            if(x != i and board[i][y] == val):
                 return True
     return False
 
@@ -58,6 +58,14 @@ def addNumber(board, val, x, y):
         return True
     return False
 
+# Verfiy if the Sudoku board is is is correct
+def isCorrectBoard(board):
+    for i in range(9):
+        for j in range(9):
+            if(board[i][j] != 0 and isAlreadyIn(board, board[i][j], i, j)):
+                return False
+    return True
+
 # Return all the position that have to be solved
 def toSolve(board):
     ret = []
@@ -67,15 +75,44 @@ def toSolve(board):
                 ret.append((i, j))
     return ret
 
+# Backtracking function
+def backtrack(board, solvedStack, toSolveStack):
+    if(solvedStack == []):
+        return False
+    (i, j) = solvedStack.pop()
+    init_val = board[i][j]
+    for val in range(init_val + 1, 10):
+        if(isCorrect(board, val, i, j)):
+            solvedStack.append((i, j))
+            addNumber(board, val, i, j)
+            return False
+        else :
+            if(val == 9):
+                toSolveStack.append((i, j))
+                backtrack(board, solvedStack, toSolveStack)
+
 # First verion of the solver
 def backtrackingSolver(board):
-    empty = toSolve(board)
-    for (i, j) in empty:
+    if(isCorrectBoard(board)):
+        return False
+    toSolveStack = toSolve(board)
+    solvedStack = []
+    while toSolveStack != []:
+        (i, j) = toSolveStack.pop()
         for val in range(1, 10):
-            print(val, i, j)
             if(isCorrect(board, val, i, j)):
+                solvedStack.append((i, j))
                 addNumber(board, val, i, j)
-
+            else:
+                print("ca part", i, j)
+                if(val == 9):
+                    print("Backtrack")
+                    toSolveStack.append((i, j))
+                    a = backtrack(board, solvedStack, toSolveStack)
+                    if(not(a)):
+                        print("Pas possible")
+                        return False
+                        
 # Board example TODO : Search a real sudoku board
 test = [[1,2,3,4,5,6,7,8,0],
         [0,1,2,3,4,5,6,7,8],
@@ -87,8 +124,6 @@ test = [[1,2,3,4,5,6,7,8,0],
         [1,2,3,4,5,6,0,7,8],
         [1,2,3,4,5,6,7,0,8]]
 
-printSudoku(test)
-print(addNumber(test, 9, 8, 8))
 printSudoku(test)
 print(toSolve(test))
 backtrackingSolver(test)
