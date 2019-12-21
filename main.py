@@ -1,6 +1,4 @@
-# The sudoku's board structure is just a 9-element-list which contains 9-element-list containing integer between 0 and 9
-
-# Create an empty sudoku board
+# Creates an empty sudoku board
 def createEmptyGame():
     ret = []
     for i in range(9):
@@ -9,17 +7,22 @@ def createEmptyGame():
             ret[i].append(0) # 0 means empty
     return ret
 
-# Print the sudoku board
-def printSudoku(a): # Update with the GUI
+# Prints the sudoku board
+# board is the Sudoku board that we want to print
+def printSudoku(board): # TODO Update with the GUI
     for i in range(9):
-        print(str(a[i][0:3])[1:-1].replace(", ", " ").replace("0", "X"), "|",
-            str(a[i][3:6])[1:-1].replace(", ", " ").replace("0", "X"), "|",
-            str(a[i][6:9])[1:-1].replace(", ", " ").replace("0", "X"))
+        print(str(board[i][0:3])[1:-1].replace(", ", " ").replace("0", "X"), "|",
+            str(board[i][3:6])[1:-1].replace(", ", " ").replace("0", "X"), "|",
+            str(board[i][6:9])[1:-1].replace(", ", " ").replace("0", "X"))
         if(i % 3 == 2 and i < 8):
             print("------+-------+-------")
 
 
-# Return True if the number already exist in the square
+# Tests if the number already exist in the square
+# @Param board is the Sudoku board in which we want to make our test
+# @Param val is the value we want to test
+# @Param x is the proposition's ordinate value
+# @Param y is the proposition's abscissa value
 def isAlreadyInSquare(board, val, x, y):
     xmin = (x // 3) * 3
     ymin = (y // 3) * 3
@@ -29,29 +32,49 @@ def isAlreadyInSquare(board, val, x, y):
                 return True
     return False
 
-# Return True if the number already exist in the square
+# Tests if the number already exist in the line
+# @Param board is the Sudoku board in which we want to make our test
+# @Param val is the value we want to test
+# @Param x is the proposition's ordinate value
+# @Param y is the proposition's abscissa value
 def isAlreadyInLine(board, val, x, y):
     for i in range(9):
         if(y != i and board[x][i] == val):
             return True
     return False
 
-# Return True if the number already exist in the square
+# Tests if the number already exist in the column
+# @Param board is the Sudoku board in which we want to make our test
+# @Param val is the value we want to test
+# @Param x is the proposition's ordinate value
+# @Param y is the proposition's abscissa value
 def isAlreadyInColumn(board, val, x, y):
     for i in range(9):
         if(x != i and board[i][y] == val):
             return True
     return False
 
-# Return True if the number already exist in the square
+# Tests if the number already exist in the square
+# @Param board is the Sudoku board in which we want to make our test
+# @Param val is the value we want to test
+# @Param x is the proposition's ordinate value
+# @Param y is the proposition's abscissa value
 def isAlreadyIn(board, val, x, y):
     return isAlreadyInSquare(board, val, x, y) or isAlreadyInLine(board, val, x, y) or isAlreadyInColumn(board, val, x, y)
 
-# Return True if the proposition is correct (according the sudoku's rules)
+# Tests if the proposition is correct (according the sudoku's rules)
+# @Param board is the Sudoku board in which we want to make our test
+# @Param val is the value we want to test
+# @Param x is the proposition's ordinate value
+# @Param y is the proposition's abscissa value
 def isCorrect(board, val, x, y):
     return not(isAlreadyIn(board, val, x, y))
 
 # Add a nulber in the board only if it's possible
+# @Param board is the Sudoku board in which we want to add a proposition
+# @Param val is the value we want to add
+# @Param x is the proposition's ordinate value
+# @Param y is the proposition's abscissa value
 def addNumber(board, val, x, y):
     if(isCorrect(board, val, x, y)):
         board[x][y] = val
@@ -59,6 +82,7 @@ def addNumber(board, val, x, y):
     return False
 
 # Verfiy if the Sudoku board is is is correct
+# board is the Sudoku board we want to verify
 def isCorrectBoard(board):
     for i in range(9):
         for j in range(9):
@@ -67,6 +91,7 @@ def isCorrectBoard(board):
     return True
 
 # Return all the position that have to be solved
+# board is the Sudoku board in which we want to know the empty positions
 def toSolve(board):
     ret = []
     for  i in range(9):
@@ -75,55 +100,65 @@ def toSolve(board):
                 ret.append((i, j, 0))
     return ret
 
-# Backtracking function
-def backtrack(board, solvedStack, toSolveStack):
-    if(solvedStack == []):
+# Delete the proposition at position (i, j)
+# @Param board is the Sudoku board in which we want to delete the proposition
+# @Param x is the proposition's ordinate value
+# @Param y is the proposition's abscissa value
+def deleteNumber(board, x, y):
+    board[x][y] = 0
+
+# Goes thorugh the process of backtracking
+# @Param board is the Sudoku board we want to solve
+# @Param val is the proposition's value
+# @Param x is the proposition's ordinate value
+# @Param y is the proposition's abscissa value
+# @Param toSolveStack is the stack which contains all the positions to solve
+# @Param solvedStack is the stack which contains all the positions already solved
+def backtracking(board, val, x, y, toSolveStack, solvedStack):
+    if(val == 9): #Backtracking step
+        if(solvedStack == []):
+            raise Exception("There is no solution")
+        toSolveStack.append((x, y, 0))
+        (x, y, k) = solvedStack.pop()
+        deleteNumber(board, x, y)
+        toSolveStack.append((x, y, k))
         return False
-    (i, j) = solvedStack.pop()
-    init_val = board[i][j]
-    for val in range(init_val + 1, 10):
-        if(isCorrect(board, val, i, j)):
-            solvedStack.append((i, j))
-            addNumber(board, val, i, j)
-            return False
-        else :
-            if(val == 9):
-                toSolveStack.append((i, j))
-                backtrack(board, solvedStack, toSolveStack)
+    return True
 
-def deleteNumber(board, i, j):
-    board[i][j] = 0
-
-# First verion of the solver
+# Backtracking solver
+# @Param board is the Sudoku board we want to solve
 def backtrackingSolver(board):
     if(not(isCorrectBoard(board))):
-        return False
+        raise Exception("The Sudoku board is not correct")
     toSolveStack = toSolve(board)
     solvedStack = []
     while toSolveStack != []:
         (i, j, k) = toSolveStack.pop()
-        if(k == 9):
-            toSolveStack.append((i, j, 0))
-            if(solvedStack == []):
-                return False
-            toSolveStack.append(solvedStack.pop())
-        else :
-            for val in range(k + 1, 10):
-                if(isCorrect(board, val, i, j)):
-                    solvedStack.append((i, j, val))
-                    addNumber(board, val, i, j)
-                    break
+        if(backtracking(board, k, i, j, toSolveStack, solvedStack)):
+            bt = True
+            k += 1
+            while(bt):
+                if(isCorrect(board, k, i, j)):
+                    solvedStack.append((i, j, k))
+                    addNumber(board, k, i, j)
+                    bt = False
                 else:
-                    if(val == 9): #Backtracking
-                        if(solvedStack == []):
-                            board = []
-                            return False
-                        toSolveStack.append((i, j, 0))
-                        (i, j, k) = solvedStack.pop()
-                        deleteNumber(board, i, j)
-                        toSolveStack.append((i, j, k))
+                    if(not(backtracking(board, k, i, j, toSolveStack, solvedStack))):
+                        bt = True
+                k += 1
 
-# Board example TODO : Search a real sudoku board
+# General solver
+# @Param board is the Sudoku board we want to solve
+# @Param type is the type of solver that will be use
+def solver(board, type):
+    print("Sudoku to solve:")
+    printSudoku(board)
+    if(type == "bt"):
+        backtrackingSolver(board)
+    print("Solution:")
+    printSudoku(board)
+
+# Board example
 test = [[0,0,0,0,5,7,0,4,0],
         [2,0,4,6,0,8,0,0,9],
         [5,8,9,2,0,4,0,7,1],
@@ -134,8 +169,15 @@ test = [[0,0,0,0,5,7,0,4,0],
         [0,0,8,5,0,3,7,0,6],
         [0,1,0,4,2,0,0,0,0]]
 
-print("Sudoku to solve:")
-printSudoku(test)
-backtrackingSolver(test)
-print("Solution:")
-printSudoku(test)
+# Solution:
+# 3 6 1 | 9 5 7 | 2 4 8
+# 2 7 4 | 6 1 8 | 3 5 9
+# 5 8 9 | 2 3 4 | 6 7 1
+# ------+-------+-------
+# 8 4 7 | 3 6 5 | 1 9 2
+# 6 5 2 | 1 8 9 | 4 3 7
+# 1 9 3 | 7 4 2 | 8 6 5
+# ------+-------+-------
+# 9 3 6 | 8 7 1 | 5 2 4
+# 4 2 8 | 5 9 3 | 7 1 6
+# 7 1 5 | 4 2 6 | 9 8 3
